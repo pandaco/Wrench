@@ -15,10 +15,7 @@ require(__DIR__ . '/../lib/SplClassLoader.php');
 $classLoader = new SplClassLoader('Wrench', __DIR__ . '/../lib');
 $classLoader->register();
 
-$server = new \Wrench\Server('ws://localhost:8000/', array(
-    'allowed_origins'            => array(
-        'mysite.localhost'
-    ),
+$server = new \Wrench\Server('ws://127.0.0.1:8000/');
 // Optional defaults:
 //     'check_origin'               => true,
 //     'connection_manager_class'   => 'Wrench\ConnectionManager',
@@ -42,7 +39,6 @@ $server = new \Wrench\Server('ws://localhost:8000/', array(
 //             'connection_id_algo'     => 'sha512'
 //         )
 //     )
-));
 
-$server->registerApplication('echo', new \Wrench\Application\EchoApplication());
+$server->registerApplication('my', new \Wrench\Application\MyApplication());
 $server->run();
