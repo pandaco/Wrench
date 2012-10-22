@@ -21,11 +21,6 @@ abstract class Application extends \Wrench\Application\Application
     {
         $id = $client->getId();
         $this->clients[$id] = $client;
-
-
-        $this->clientConnected($client->getIp(), $client->getPort());
-
-        $this->sendServerinfo($client);
     }
 
     /**
@@ -35,15 +30,6 @@ abstract class Application extends \Wrench\Application\Application
     {
         $id = $client->getId();
         unset($this->clients[$id]);
-    }
-
-    /**
-     * @see Wrench\Application.Application::onData()
-     */
-    public function onData($data, Connection $client)
-    {
-        var_dump($data);
-        $this->sendAll($this->encodeData('hello', $data));
     }
 
     /**
@@ -91,7 +77,7 @@ abstract class Application extends \Wrench\Application\Application
         $this->serverClientCount--;
         $this->statusMsg('Client disconnected: ' .$ip.':'.$port);
         $data = array(
-            'port' => $port,
+            'port'        => $port,
             'clientCount' => $this->serverClientCount,
         );
         $encodedData = $this->encodeData('clientDisconnected', $data);
@@ -140,6 +126,8 @@ abstract class Application extends \Wrench\Application\Application
     }
 
     /**
+     * Sends a message to everyone, even for the socket that starts it.
+     *
      * @param string $encodedData
      */
     protected function sendAll($encodedData)
@@ -147,8 +135,30 @@ abstract class Application extends \Wrench\Application\Application
         if (count($this->clients) < 1) {
             return false;
         }
-        foreach ($this->clients as $sendto) {
-            $sendto->send($encodedData);
+
+        /**
+         * @var $sendTo \Wrench\Connection
+         */
+        foreach ($this->clients as $sendTo) {
+            $sendTo->send($encodedData);
+        }
+    }
+
+    /**
+     * Sends a message to everyone else except for the socket that starts it.
+     *
+     * @param string     $encodedData
+     * @param Connection $client
+     */
+    protected function broadcast($encodedData, Connection $client)
+    {
+        /**
+         * @var $sendTo \Wrench\Connection
+         */
+        foreach ($this->clients as $sendTo) {
+            if ($sendTo->getId() !== $client->getId()) {
+                $sendTo->send($encodedData);
+            }
         }
     }
 
@@ -159,6 +169,7 @@ abstract class Application extends \Wrench\Application\Application
     protected function decodeData($data)
     {
         $decodedData = json_decode($data, true);
+
         if ($decodedData === null) {
             return false;
         }
