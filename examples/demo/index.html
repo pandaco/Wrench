@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Demo - Websocket</title>
+</head>
+<body>
+
+<script>
+var ws = new WebSocket('ws://127.0.0.1:8000/demo');
+ws.onmessage = function(data) {
+    console.log(data);
+};
+</script>
+</body>
+</html>
